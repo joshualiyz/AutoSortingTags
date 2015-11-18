@@ -145,7 +145,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
             curDraggingTag = tag;
             curIndex = i;
             [curDraggingTag.view removeFromSuperview];
-            curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x - scrollView.contentOffset.x + scrollView.frame.origin.x, curDraggingTag.desOrigin.y - scrollView.contentOffset.y + scrollView.frame.origin.y, itemWidth, itemWidth);
+            curDraggingTag.view.center = CGPointMake(curDraggingTag.center.x - scrollView.contentOffset.x + scrollView.frame.origin.x, curDraggingTag.center.y - scrollView.contentOffset.y + scrollView.frame.origin.y);
             [self.view addSubview:curDraggingTag.view];
             break;
         }
@@ -157,7 +157,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     if(curDraggingTag){
         UITouch *touch = [touches anyObject];
         CGPoint point = [touch locationInView:scrollView];
-        curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x - scrollView.contentOffset.x + scrollView.frame.origin.x + point.x - startDraggingOrigin.x, curDraggingTag.desOrigin.y - scrollView.contentOffset.y + scrollView.frame.origin.y + point.y - startDraggingOrigin.y, itemWidth, itemWidth);
+        curDraggingTag.view.center = CGPointMake(curDraggingTag.desOrigin.x - scrollView.contentOffset.x + scrollView.frame.origin.x + point.x - startDraggingOrigin.x + itemWidth / 2, curDraggingTag.desOrigin.y - scrollView.contentOffset.y + scrollView.frame.origin.y + point.y - startDraggingOrigin.y + itemWidth / 2);
         
         [self triggerDetecting];
     }
@@ -174,7 +174,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         [scrollView addSubview:curDraggingTag.view];
         curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x, curDraggingTag.desOrigin.y, itemWidth, itemWidth);
+            curDraggingTag.view.center = CGPointMake(curDraggingTag.desOrigin.x + itemWidth / 2, curDraggingTag.desOrigin.y + itemWidth / 2);
         } completion:^(BOOL finished) {
         }];
         curDraggingTag = nil;
@@ -192,7 +192,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         [scrollView addSubview:curDraggingTag.view];
         curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x, curDraggingTag.desOrigin.y, itemWidth, itemWidth);
+            curDraggingTag.view.center = CGPointMake(curDraggingTag.desOrigin.x + itemWidth / 2, curDraggingTag.desOrigin.y + itemWidth / 2);
         } completion:^(BOOL finished) {
         }];
         curDraggingTag = nil;
