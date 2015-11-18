@@ -17,6 +17,7 @@
 		C02A5BD91BFC1278006C7CE1 /* TagItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C02A5BD41BFC1278006C7CE1 /* TagItem.m */; };
 		C02A5BDA1BFC1278006C7CE1 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C02A5BD61BFC1278006C7CE1 /* ViewController.m */; };
 		C02A5BDD1BFC1954006C7CE1 /* TagView.m in Sources */ = {isa = PBXBuildFile; fileRef = C02A5BDC1BFC1954006C7CE1 /* TagView.m */; };
+		C02A5BE01BFC508B006C7CE1 /* OrderingTagsView.m in Sources */ = {isa = PBXBuildFile; fileRef = C02A5BDF1BFC508B006C7CE1 /* OrderingTagsView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,8 @@
 		C02A5BD61BFC1278006C7CE1 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		C02A5BDB1BFC1954006C7CE1 /* TagView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TagView.h; sourceTree = "<group>"; };
 		C02A5BDC1BFC1954006C7CE1 /* TagView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TagView.m; sourceTree = "<group>"; };
+		C02A5BDE1BFC508B006C7CE1 /* OrderingTagsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OrderingTagsView.h; sourceTree = "<group>"; };
+		C02A5BDF1BFC508B006C7CE1 /* OrderingTagsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OrderingTagsView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +90,8 @@
 				C02A5BB81BFC1253006C7CE1 /* Supporting Files */,
 				C02A5BDB1BFC1954006C7CE1 /* TagView.h */,
 				C02A5BDC1BFC1954006C7CE1 /* TagView.m */,
+				C02A5BDE1BFC508B006C7CE1 /* OrderingTagsView.h */,
+				C02A5BDF1BFC508B006C7CE1 /* OrderingTagsView.m */,
 			);
 			path = AutoSortingTags;
 			sourceTree = "<group>";
@@ -170,6 +175,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C02A5BDA1BFC1278006C7CE1 /* ViewController.m in Sources */,
+				C02A5BE01BFC508B006C7CE1 /* OrderingTagsView.m in Sources */,
 				C02A5BBD1BFC1253006C7CE1 /* AppDelegate.m in Sources */,
 				C02A5BD81BFC1278006C7CE1 /* SwapViewController.m in Sources */,
 				C02A5BD71BFC1278006C7CE1 /* OrderViewController.m in Sources */,
