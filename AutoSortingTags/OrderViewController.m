@@ -148,7 +148,10 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
             curDraggingTag = tag;
             curIndex = i;
             [curDraggingTag.view removeFromSuperview];
+            curDraggingTag.view.bounds = CGRectMake(curDraggingTag.view.center.x, curDraggingTag.view.center.y, itemWidth * 1.5f, itemWidth * 1.5f);
             curDraggingTag.view.center = CGPointMake(curDraggingTag.center.x - scrollView.contentOffset.x + scrollView.frame.origin.x, curDraggingTag.center.y - scrollView.contentOffset.y + scrollView.frame.origin.y);
+            curDraggingTag.view.layer.cornerRadius = itemWidth/2 * 1.5f;
+            curDraggingTag.view.alpha = 0.5;
             [self.view addSubview:curDraggingTag.view];
             break;
         }
@@ -173,8 +176,11 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
         [curDraggingTag.view removeFromSuperview];
+        curDraggingTag.view.bounds = CGRectMake(curDraggingTag.view.center.x, curDraggingTag.view.center.y, itemWidth, itemWidth);
         curDraggingTag.view.center = CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y);
         [scrollView addSubview:curDraggingTag.view];
+        curDraggingTag.view.layer.cornerRadius = itemWidth/2;
+        curDraggingTag.view.alpha = 1;
         curDraggingTag.desCenter = curDraggingTag.center;
         [UIView animateWithDuration:ANIM_DURATION animations:^{
             curDraggingTag.view.center = curDraggingTag.desCenter;
@@ -191,8 +197,11 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
         [curDraggingTag.view removeFromSuperview];
+        curDraggingTag.view.bounds = CGRectMake(curDraggingTag.view.center.x, curDraggingTag.view.center.y, itemWidth, itemWidth);
         curDraggingTag.view.center = CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y);
         [scrollView addSubview:curDraggingTag.view];
+        curDraggingTag.view.layer.cornerRadius = itemWidth/2;
+        curDraggingTag.view.alpha = 1;
         curDraggingTag.desCenter = curDraggingTag.center;
         [UIView animateWithDuration:ANIM_DURATION animations:^{
             curDraggingTag.view.center = curDraggingTag.desCenter;
