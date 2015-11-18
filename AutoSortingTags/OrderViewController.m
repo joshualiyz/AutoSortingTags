@@ -8,11 +8,12 @@
 
 #import "OrderViewController.h"
 #import "TagItem.h"
+#import "TagView.h"
 
 #define COLUM_NUM  4
-#define ROW_NUM    5
+#define ROW_NUM    10
 
-@interface OrderViewController ()
+@interface OrderViewController ()<TagViewTouchDelegate>
 {
     CGFloat gap;
     CGFloat itemWidth;
@@ -21,6 +22,7 @@
     CGPoint startDraggingOrigin;
     NSInteger curIndex;
     NSInteger detectingIndex;
+    UIScrollView * scrollView;
 }
 @property (nonatomic, strong) NSMutableArray * tags;
 @end
@@ -30,6 +32,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
+    scrollView = [UIScrollView new];
+    scrollView.frame = self.view.frame;
+    [self.view addSubview:scrollView];
     self.tags = [NSMutableArray array];
     gap = 20;
     itemWidth = ([UIScreen mainScreen].bounds.size.width - 50 - 20 * (COLUM_NUM - 1)) / COLUM_NUM;
@@ -38,10 +43,12 @@
             TagItem * tag = [TagItem new];
             tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * j, 50 + (gap + itemWidth) * i);
             tag.center = CGPointMake(tag.desOrigin.x + itemWidth/2, tag.desOrigin.y + itemWidth/2);
-            tag.view = [[UILabel alloc] initWithFrame:CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth)];
+            tag.view = [[TagView alloc] initWithFrame:CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth)];
+            tag.view.userInteractionEnabled = YES;
+            ((TagView *)tag.view).touchDelegate = self;
             tag.view.backgroundColor = [UIColor colorWithRed: 20 * (i + 1) * (j + 1) / 255.0f green:20 * (ROW_NUM-i) * (COLUM_NUM-j) / 255.0f blue:20 * (i + 1) * (j + 1) / 255.0f alpha:1];
             [self.tags addObject:tag];
-            [self.view addSubview:tag.view];
+            [scrollView addSubview:tag.view];
             tag.view.font = [UIFont systemFontOfSize:17];
             tag.view.text = [NSString stringWithFormat:@"%i", i * COLUM_NUM + j];
             tag.view.textAlignment = NSTextAlignmentCenter;
@@ -49,6 +56,7 @@
             tag.view.layer.masksToBounds = YES;
         }
     }
+    scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, 50 + (gap + itemWidth) * ROW_NUM + 44);
 }
 
 CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
@@ -101,10 +109,11 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     detectingTag = nil;
 }
 
-- (void) touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+- (void) tagView:(UIView *)view touchesBegan:(NSSet<UITouch *> *)touches
 {
+    scrollView.scrollEnabled = NO;
     UITouch *touch = [touches anyObject];
-    startDraggingOrigin = [touch locationInView:self.view];
+    startDraggingOrigin = [touch locationInView:scrollView];
     for(NSInteger i = 0 ; i < self.tags.count ; i ++){
         TagItem * tag = [self.tags objectAtIndex:i];
         if(CGRectContainsPoint(tag.view.frame, startDraggingOrigin)){
@@ -118,11 +127,11 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     }
 }
 
-- (void) touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+- (void) tagView:(UIView *)view touchesMoved:(NSSet<UITouch *> *)touches
 {
     if(curDraggingTag){
         UITouch *touch = [touches anyObject];
-        CGPoint point = [touch locationInView:self.view];
+        CGPoint point = [touch locationInView:scrollView];
         curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x + point.x - startDraggingOrigin.x, curDraggingTag.desOrigin.y + point.y - startDraggingOrigin.y, itemWidth, itemWidth);
         
         BOOL outside = YES;
@@ -149,8 +158,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     }
 }
 
-- (void) touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+- (void) tagView:(UIView *)view touchesEnded:(NSSet<UITouch *> *)touches
 {
+    scrollView.scrollEnabled = YES;
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
         curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
@@ -163,8 +173,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     }
 }
 
-- (void) touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+- (void) tagView:(UIView *)view touchesCancelled:(NSSet<UITouch *> *)touches
 {
+    scrollView.scrollEnabled = YES;
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
         curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
