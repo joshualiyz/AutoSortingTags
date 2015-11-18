@@ -13,7 +13,7 @@
 #define COLUM_NUM  4
 #define ROW_NUM    10
 
-@interface OrderViewController ()<TagViewTouchDelegate, UIScrollViewDelegate>
+@interface OrderViewController ()<TagViewTouchDelegate>
 {
     CGFloat gap;
     CGFloat itemWidth;
@@ -23,7 +23,6 @@
     NSInteger curIndex;
     NSInteger detectingIndex;
     UIScrollView * scrollView;
-    BOOL scrolling;
 }
 @property (nonatomic, strong) NSMutableArray * tags;
 @end
@@ -34,7 +33,6 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
     scrollView = [UIScrollView new];
-    scrollView.delegate = self;
     scrollView.frame = CGRectMake(0, 50, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height - 44 - 50);
     [self.view addSubview:scrollView];
     self.tags = [NSMutableArray array];
@@ -105,7 +103,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
 
 - (void) detectHanging
 {
-    if(distanceBetweenPoints(detectingTag.center, curDraggingTag.view.center) < itemWidth / 2){
+    if(distanceBetweenPoints(detectingTag.center, CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y)) < itemWidth / 2){
         [self startOrderAnim:detectingTag index:detectingIndex];
     }
     detectingTag = nil;
@@ -113,21 +111,25 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
 
 - (void) triggerDetecting
 {
-    if(scrolling){
-        return;
-    }
-    for(NSInteger i = 0 ; i < self.tags.count ; i ++){
-        TagItem * tag = [self.tags objectAtIndex:i];
-        CGFloat distance = distanceBetweenPoints(tag.center, curDraggingTag.view.center);
-        if(curDraggingTag == tag || detectingTag == tag){
-            continue;
-        }
-        if(distance < itemWidth / 2){
-            detectingTag = tag;
-            detectingIndex = i;
-            [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
-            [self performSelector:@selector(detectHanging) withObject:nil afterDelay:DETECTING_DURATION];
-            break;
+    BOOL outside = curDraggingTag.view.center.y < scrollView.frame.origin.y || curDraggingTag.view.center.y > scrollView.frame.origin.y + scrollView.frame.size.height;
+    if(outside){
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(triggerDetecting) object:nil];
+        [scrollView scrollRectToVisible:CGRectMake(curDraggingTag.view.frame.origin.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.frame.origin.y - scrollView.frame.origin.y + scrollView.contentOffset.y, itemWidth, itemWidth) animated:YES];
+        [self performSelector:@selector(triggerDetecting) withObject:nil afterDelay:0.2];
+    }else{
+        for(NSInteger i = 0 ; i < self.tags.count ; i ++){
+            TagItem * tag = [self.tags objectAtIndex:i];
+            CGFloat distance = distanceBetweenPoints(tag.center, CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y));
+            if(curDraggingTag == tag || detectingTag == tag){
+                continue;
+            }
+            if(distance < itemWidth / 2){
+                detectingTag = tag;
+                detectingIndex = i;
+                [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
+                [self performSelector:@selector(detectHanging) withObject:nil afterDelay:DETECTING_DURATION];
+                break;
+            }
         }
     }
 }
@@ -142,6 +144,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         if(CGRectContainsPoint(tag.view.frame, startDraggingOrigin)){
             curDraggingTag = tag;
             curIndex = i;
+            [curDraggingTag.view removeFromSuperview];
+            curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x - scrollView.contentOffset.x + scrollView.frame.origin.x, curDraggingTag.desOrigin.y - scrollView.contentOffset.y + scrollView.frame.origin.y, itemWidth, itemWidth);
+            [self.view addSubview:curDraggingTag.view];
             break;
         }
     }
@@ -155,23 +160,21 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     if(curDraggingTag){
         UITouch *touch = [touches anyObject];
         CGPoint point = [touch locationInView:scrollView];
-        curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x + point.x - startDraggingOrigin.x, curDraggingTag.desOrigin.y + point.y - startDraggingOrigin.y, itemWidth, itemWidth);
+        curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x - scrollView.contentOffset.x + scrollView.frame.origin.x + point.x - startDraggingOrigin.x, curDraggingTag.desOrigin.y - scrollView.contentOffset.y + scrollView.frame.origin.y + point.y - startDraggingOrigin.y, itemWidth, itemWidth);
         
-        BOOL outside = curDraggingTag.view.center.y < scrollView.contentOffset.y || curDraggingTag.view.center.y > scrollView.contentOffset.y + scrollView.bounds.size.height;
-        
-        if(outside){
-            [scrollView scrollRectToVisible:curDraggingTag.view.frame animated:YES];
-        }else{
-            [self triggerDetecting];
-        }
+        [self triggerDetecting];
     }
 }
 
 - (void) tagView:(UIView *)view touchesEnded:(NSSet<UITouch *> *)touches
 {
     scrollView.scrollEnabled = YES;
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(triggerDetecting) object:nil];
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
+        [curDraggingTag.view removeFromSuperview];
+        curDraggingTag.view.center = CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y);
+        [scrollView addSubview:curDraggingTag.view];
         curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
         [UIView animateWithDuration:ANIM_DURATION animations:^{
             curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x, curDraggingTag.desOrigin.y, itemWidth, itemWidth);
@@ -185,8 +188,12 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
 - (void) tagView:(UIView *)view touchesCancelled:(NSSet<UITouch *> *)touches
 {
     scrollView.scrollEnabled = YES;
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(triggerDetecting) object:nil];
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
+        [curDraggingTag.view removeFromSuperview];
+        curDraggingTag.view.center = CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y);
+        [scrollView addSubview:curDraggingTag.view];
         curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
         [UIView animateWithDuration:ANIM_DURATION animations:^{
             curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x, curDraggingTag.desOrigin.y, itemWidth, itemWidth);
@@ -195,21 +202,6 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         }];
         curDraggingTag = nil;
     }
-}
-
-- (void) scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    scrolling = YES;
-}
-
-- (void) scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-{
-    scrolling = NO;
-}
-
-- (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-    scrolling = NO;
 }
 
 @end
