@@ -13,7 +13,7 @@
 #define COLUM_NUM  4
 #define ROW_NUM    10
 
-@interface OrderViewController ()<TagViewTouchDelegate>
+@interface OrderViewController ()<TagViewTouchDelegate, UIScrollViewDelegate>
 {
     CGFloat gap;
     CGFloat itemWidth;
@@ -23,6 +23,7 @@
     NSInteger curIndex;
     NSInteger detectingIndex;
     UIScrollView * scrollView;
+    BOOL scrolling;
 }
 @property (nonatomic, strong) NSMutableArray * tags;
 @end
@@ -33,7 +34,8 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
     scrollView = [UIScrollView new];
-    scrollView.frame = self.view.frame;
+    scrollView.delegate = self;
+    scrollView.frame = CGRectMake(0, 50, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height - 44 - 50);
     [self.view addSubview:scrollView];
     self.tags = [NSMutableArray array];
     gap = 20;
@@ -41,7 +43,7 @@
     for(int i = 0 ; i < ROW_NUM ; i ++){
         for(int j = 0 ; j < COLUM_NUM ; j ++){
             TagItem * tag = [TagItem new];
-            tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * j, 50 + (gap + itemWidth) * i);
+            tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * j, (gap + itemWidth) * i);
             tag.center = CGPointMake(tag.desOrigin.x + itemWidth/2, tag.desOrigin.y + itemWidth/2);
             tag.view = [[TagView alloc] initWithFrame:CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth)];
             tag.view.userInteractionEnabled = YES;
@@ -56,7 +58,7 @@
             tag.view.layer.masksToBounds = YES;
         }
     }
-    scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, 50 + (gap + itemWidth) * ROW_NUM + 44);
+    scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, (gap + itemWidth) * ROW_NUM);
 }
 
 CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
@@ -91,7 +93,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
             [UIView animateWithDuration:ANIM_DURATION animations:^{
                 [UIView setAnimationDelay:ANIM_DURATION / (MAX(tmpCurIndex, targetIndex) - MIN(tmpCurIndex, targetIndex)) * (forward ? MAX(tmpCurIndex, targetIndex) - i : i - MIN(tmpCurIndex, targetIndex))];
                 TagItem * tag = [self.tags objectAtIndex:i];
-                tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * (i % COLUM_NUM), 50 + (gap + itemWidth) * (i / COLUM_NUM));
+                tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * (i % COLUM_NUM), (gap + itemWidth) * (i / COLUM_NUM));
                 tag.center = CGPointMake(tag.desOrigin.x + itemWidth/2, tag.desOrigin.y + itemWidth/2);
                 tag.view.frame = CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth);
                 tag.view.text = [NSString stringWithFormat:@"%li", (long)i];
@@ -109,6 +111,27 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     detectingTag = nil;
 }
 
+- (void) triggerDetecting
+{
+    if(scrolling){
+        return;
+    }
+    for(NSInteger i = 0 ; i < self.tags.count ; i ++){
+        TagItem * tag = [self.tags objectAtIndex:i];
+        CGFloat distance = distanceBetweenPoints(tag.center, curDraggingTag.view.center);
+        if(curDraggingTag == tag || detectingTag == tag){
+            continue;
+        }
+        if(distance < itemWidth / 2){
+            detectingTag = tag;
+            detectingIndex = i;
+            [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
+            [self performSelector:@selector(detectHanging) withObject:nil afterDelay:DETECTING_DURATION];
+            break;
+        }
+    }
+}
+
 - (void) tagView:(UIView *)view touchesBegan:(NSSet<UITouch *> *)touches
 {
     scrollView.scrollEnabled = NO;
@@ -123,7 +146,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         }
     }
     if(curDraggingTag){
-        [self.view bringSubviewToFront:curDraggingTag.view];
+        [scrollView bringSubviewToFront:curDraggingTag.view];
     }
 }
 
@@ -134,26 +157,12 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         CGPoint point = [touch locationInView:scrollView];
         curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x + point.x - startDraggingOrigin.x, curDraggingTag.desOrigin.y + point.y - startDraggingOrigin.y, itemWidth, itemWidth);
         
-        BOOL outside = YES;
-        for(NSInteger i = 0 ; i < self.tags.count ; i ++){
-            TagItem * tag = [self.tags objectAtIndex:i];
-            CGFloat distance = distanceBetweenPoints(tag.center, curDraggingTag.view.center);
-            if(distance < itemWidth){
-                outside = NO;
-            }
-            if(curDraggingTag == tag || detectingTag == tag){
-                continue;
-            }
-            if(distance < itemWidth / 2){
-                detectingTag = tag;
-                detectingIndex = i;
-                [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
-                [self performSelector:@selector(detectHanging) withObject:nil afterDelay:DETECTING_DURATION];
-                break;
-            }
-        }
+        BOOL outside = curDraggingTag.view.center.y < scrollView.contentOffset.y || curDraggingTag.view.center.y > scrollView.contentOffset.y + scrollView.bounds.size.height;
+        
         if(outside){
-            [self startOrderAnim:[self.tags objectAtIndex:self.tags.count - 1] index:self.tags.count - 1];
+            [scrollView scrollRectToVisible:curDraggingTag.view.frame animated:YES];
+        }else{
+            [self triggerDetecting];
         }
     }
 }
@@ -186,6 +195,21 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         }];
         curDraggingTag = nil;
     }
+}
+
+- (void) scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    scrolling = YES;
+}
+
+- (void) scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    scrolling = NO;
+}
+
+- (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    scrolling = NO;
 }
 
 @end
