@@ -95,7 +95,6 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
                 tag.center = CGPointMake(25 + (gap + itemWidth) * (i % COLUM_NUM) + itemWidth/2, (gap + itemWidth) * (i / COLUM_NUM) + itemWidth/2);
                 tag.desCenter = tag.center;
                 tag.view.center = tag.desCenter;
-                tag.view.text = [NSString stringWithFormat:@"%li", (long)i];
             }
             completion:^(BOOL finished) {
                              }];
@@ -137,6 +136,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
 
 - (void) tagView:(UIView *)view touchesBegan:(NSSet<UITouch *> *)touches
 {
+    if(curDraggingTag){
+        return;
+    }
     scrollView.scrollEnabled = NO;
     UITouch *touch = [touches anyObject];
     startDraggingOrigin = [touch locationInView:scrollView];
