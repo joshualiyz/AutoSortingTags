@@ -30,9 +30,10 @@
     for(int i = 0 ; i < 5 ; i ++){
         for(int j = 0 ; j < 4 ; j ++){
             TagItem * tag = [TagItem new];
-            tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * j, 50 + (gap + itemWidth) * i);
-            tag.center = CGPointMake(tag.desOrigin.x + itemWidth/2, tag.desOrigin.y + itemWidth/2);
-            tag.view = [[UILabel alloc] initWithFrame:CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth)];
+            CGPoint desOrigin = CGPointMake(25 + (gap + itemWidth) * j, 50 + (gap + itemWidth) * i);
+            tag.center = CGPointMake(desOrigin.x + itemWidth/2, desOrigin.y + itemWidth/2);
+            tag.desCenter = tag.center;
+            tag.view = [[UILabel alloc] initWithFrame:CGRectMake(desOrigin.x, desOrigin.y, itemWidth, itemWidth)];
             tag.view.backgroundColor = [UIColor colorWithRed: 20 * (i + 1) * (j + 1) / 255.0f green:20 * (5-i) * (4-j) / 255.0f blue:20 * (i + 1) * (j + 1) / 255.0f alpha:1];
             [self.tags addObject:tag];
             [self.view addSubview:tag.view];
@@ -53,10 +54,10 @@ CGFloat distanceBetweenPoints1 (CGPoint first, CGPoint second) {
         CGPoint tmpPoint = CGPointMake(detectingTag.center.x, detectingTag.center.y);
         detectingTag.center = CGPointMake(curDraggingTag.center.x, curDraggingTag.center.y);
         curDraggingTag.center = CGPointMake(tmpPoint.x, tmpPoint.y);
-        detectingTag.desOrigin = CGPointMake(detectingTag.center.x - itemWidth / 2, detectingTag.center.y - itemWidth / 2);
+        detectingTag.desCenter = detectingTag.center;
         
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            detectingTag.view.frame = CGRectMake(detectingTag.desOrigin.x, detectingTag.desOrigin.y, itemWidth, itemWidth);
+            detectingTag.view.center = CGPointMake(detectingTag.desCenter.x, detectingTag.desCenter.y);
         } completion:^(BOOL finished) {
         }];
     }
@@ -83,7 +84,7 @@ CGFloat distanceBetweenPoints1 (CGPoint first, CGPoint second) {
     if(curDraggingTag){
         UITouch *touch = [touches anyObject];
         CGPoint point = [touch locationInView:self.view];
-        curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x + point.x - startDraggingOrigin.x, curDraggingTag.desOrigin.y + point.y - startDraggingOrigin.y, itemWidth, itemWidth);
+        curDraggingTag.view.center = CGPointMake(curDraggingTag.desCenter.x + point.x - startDraggingOrigin.x, curDraggingTag.desCenter.y + point.y - startDraggingOrigin.y);
         
         for(TagItem * tag in self.tags){
             if(curDraggingTag == tag || detectingTag == tag){
@@ -103,9 +104,9 @@ CGFloat distanceBetweenPoints1 (CGPoint first, CGPoint second) {
 {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
-        curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
+        curDraggingTag.desCenter = curDraggingTag.center;
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x, curDraggingTag.desOrigin.y, itemWidth, itemWidth);
+            curDraggingTag.view.center = curDraggingTag.desCenter;
         } completion:^(BOOL finished) {
         }];
         curDraggingTag = nil;
@@ -116,9 +117,9 @@ CGFloat distanceBetweenPoints1 (CGPoint first, CGPoint second) {
 {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(detectHanging) object:nil];
     if(curDraggingTag){
-        curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
+        curDraggingTag.desCenter = curDraggingTag.center;
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            curDraggingTag.view.frame = CGRectMake(curDraggingTag.desOrigin.x, curDraggingTag.desOrigin.y, itemWidth, itemWidth);
+            curDraggingTag.view.center = curDraggingTag.desCenter;
         } completion:^(BOOL finished) {
         }];
         curDraggingTag = nil;

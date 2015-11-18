@@ -14,7 +14,7 @@
 
 @interface TagItem : NSObject
 @property (nonatomic, strong) UILabel * view;
-@property CGPoint desOrigin;
+@property CGPoint desCenter;
 @property CGPoint center;
 @property BOOL needChange;
 

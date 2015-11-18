@@ -41,9 +41,10 @@
     for(int i = 0 ; i < ROW_NUM ; i ++){
         for(int j = 0 ; j < COLUM_NUM ; j ++){
             TagItem * tag = [TagItem new];
-            tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * j, (gap + itemWidth) * i);
-            tag.center = CGPointMake(tag.desOrigin.x + itemWidth/2, tag.desOrigin.y + itemWidth/2);
-            tag.view = [[TagView alloc] initWithFrame:CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth)];
+            CGPoint desOrigin = CGPointMake(25 + (gap + itemWidth) * j, (gap + itemWidth) * i);
+            tag.center = CGPointMake(desOrigin.x + itemWidth/2, desOrigin.y + itemWidth/2);
+            tag.desCenter = tag.center;
+            tag.view = [[TagView alloc] initWithFrame:CGRectMake(desOrigin.x, desOrigin.y, itemWidth, itemWidth)];
             tag.view.userInteractionEnabled = YES;
             ((TagView *)tag.view).touchDelegate = self;
             tag.view.backgroundColor = [UIColor colorWithRed: 20 * (i + 1) * (j + 1) / 255.0f green:20 * (ROW_NUM-i) * (COLUM_NUM-j) / 255.0f blue:20 * (i + 1) * (j + 1) / 255.0f alpha:1];
@@ -91,9 +92,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
             [UIView animateWithDuration:ANIM_DURATION animations:^{
                 [UIView setAnimationDelay:ANIM_DURATION / (MAX(tmpCurIndex, targetIndex) - MIN(tmpCurIndex, targetIndex)) * (forward ? MAX(tmpCurIndex, targetIndex) - i : i - MIN(tmpCurIndex, targetIndex))];
                 TagItem * tag = [self.tags objectAtIndex:i];
-                tag.desOrigin = CGPointMake(25 + (gap + itemWidth) * (i % COLUM_NUM), (gap + itemWidth) * (i / COLUM_NUM));
-                tag.center = CGPointMake(tag.desOrigin.x + itemWidth/2, tag.desOrigin.y + itemWidth/2);
-                tag.view.frame = CGRectMake(tag.desOrigin.x, tag.desOrigin.y, itemWidth, itemWidth);
+                tag.center = CGPointMake(25 + (gap + itemWidth) * (i % COLUM_NUM) + itemWidth/2, (gap + itemWidth) * (i / COLUM_NUM) + itemWidth/2);
+                tag.desCenter = tag.center;
+                tag.view.center = tag.desCenter;
                 tag.view.text = [NSString stringWithFormat:@"%li", (long)i];
             }
             completion:^(BOOL finished) {
@@ -157,7 +158,7 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
     if(curDraggingTag){
         UITouch *touch = [touches anyObject];
         CGPoint point = [touch locationInView:scrollView];
-        curDraggingTag.view.center = CGPointMake(curDraggingTag.desOrigin.x - scrollView.contentOffset.x + scrollView.frame.origin.x + point.x - startDraggingOrigin.x + itemWidth / 2, curDraggingTag.desOrigin.y - scrollView.contentOffset.y + scrollView.frame.origin.y + point.y - startDraggingOrigin.y + itemWidth / 2);
+        curDraggingTag.view.center = CGPointMake(curDraggingTag.desCenter.x - scrollView.contentOffset.x + scrollView.frame.origin.x + point.x - startDraggingOrigin.x, curDraggingTag.desCenter.y - scrollView.contentOffset.y + scrollView.frame.origin.y + point.y - startDraggingOrigin.y);
         
         [self triggerDetecting];
     }
@@ -172,9 +173,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         [curDraggingTag.view removeFromSuperview];
         curDraggingTag.view.center = CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y);
         [scrollView addSubview:curDraggingTag.view];
-        curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
+        curDraggingTag.desCenter = curDraggingTag.center;
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            curDraggingTag.view.center = CGPointMake(curDraggingTag.desOrigin.x + itemWidth / 2, curDraggingTag.desOrigin.y + itemWidth / 2);
+            curDraggingTag.view.center = curDraggingTag.desCenter;
         } completion:^(BOOL finished) {
         }];
         curDraggingTag = nil;
@@ -190,9 +191,9 @@ CGFloat distanceBetweenPoints (CGPoint first, CGPoint second) {
         [curDraggingTag.view removeFromSuperview];
         curDraggingTag.view.center = CGPointMake(curDraggingTag.view.center.x - scrollView.frame.origin.x + scrollView.contentOffset.x, curDraggingTag.view.center.y - scrollView.frame.origin.y + scrollView.contentOffset.y);
         [scrollView addSubview:curDraggingTag.view];
-        curDraggingTag.desOrigin = CGPointMake(curDraggingTag.center.x - itemWidth / 2, curDraggingTag.center.y - itemWidth / 2);
+        curDraggingTag.desCenter = curDraggingTag.center;
         [UIView animateWithDuration:ANIM_DURATION animations:^{
-            curDraggingTag.view.center = CGPointMake(curDraggingTag.desOrigin.x + itemWidth / 2, curDraggingTag.desOrigin.y + itemWidth / 2);
+            curDraggingTag.view.center = curDraggingTag.desCenter;
         } completion:^(BOOL finished) {
         }];
         curDraggingTag = nil;
